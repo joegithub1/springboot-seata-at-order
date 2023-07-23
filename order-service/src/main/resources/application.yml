@@ -1,0 +1,123 @@
+server:
+  port: 18081
+dubbo:
+  application:
+    metadata-type: remote
+    name: order-service
+    version: 1.0.0
+    qos-enable: false
+  metadata-report:
+    #    registry: nacos
+    address: nacos://127.0.0.1:8848
+    group: DEV-GROUP
+  config:
+    override: false
+    multiple: false
+  #  config-center:
+  #    config-file: /dubbo-dev/data-config
+  #    protocol: nacos
+  #    check: false
+  scan:
+    base-packages: com.joe.order.service.impl
+  protocol:
+    #    host: ${PROTOCOLHOST}       #用于多网卡时指定IP，要不然集群会有问题
+    name: dubbo
+    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
+    port: -1
+  #    optimizer: com.ykwl.serialize.SerializationOptimizerImpl
+  #    serialization: kryo #fastjson
+  registry:
+    timeout: 10000
+    # 挂载到 Spring Cloud 注册中心（测试暂不好使，还是直接用nacos）
+    address: nacos://127.0.0.1:8848
+    group: DEV-GROUP
+    check: false
+    username: nacos
+    password: nacos
+  cloud:
+    subscribed-services:
+  provider:
+    threadpool: fixed
+    loadbalance: random
+    timeout: 3000
+    #    retries: 1
+    threads: 200
+  consumer:
+    threadpool: fixed
+    loadbalance: random
+    timeout: 3000
+    #    retries: 1
+    threads: 200
+    check: false
+  service:
+    version: 1.0.0
+  #  monitor:
+  #    protocol: registry
+spring:
+  application:
+    name: order-service
+  cloud:
+    inetutils:
+      timeout-seconds: 15
+    nacos:
+      server-addr: 127.0.0.1:8848
+      discovery:
+        server-addr: 127.0.0.1:8848
+        group: DEV-GROUP
+  datasource: # 指定数据源
+    type: com.zaxxer.hikari.HikariDataSource          # 指定数据源类型
+    url: jdbc:mysql://192.168.0.109:3306/seata_at_order?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&useSSL=false&nullCatalogMeansCurrent=true&tinyInt1isBit=false&useAffectedRows=true
+    username: root
+    password: root
+    driverClassName: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      connection-timeout: 30000
+      validation-timeout: 10000
+      idle-timeout: 30000
+      login-timeout: 5
+      max-lifetime: 30000
+      maximum-pool-size: 20
+      minimum-idle: 2
+      read-only: false
+      auto-commit: true
+      connectionTestQuery: SELECT 1
+      poolName: YKManageHikariCP
+#mybatis-plus配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*Mapper.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.joe.order.entity
+  #typeEnumsPackage: vip.mate.dashboard.entity.enums
+  global-config:
+    # 关闭MP3.0自带的banner
+    banner: false
+    db-config:
+      #主键类型  AUTO:"数据库ID自增", NONE:"不操作", INPUT:"用户输入ID",ASSIGN_ID:"数字型snowflake", ASSIGN_UUID:"全局唯一ID UUID.replace("-","")", 5:"字符串型snowflake";
+      #      id-type: 0
+      #字段策略
+      insert-strategy: NOT_NULL
+      update-strategy: NOT_NULL
+      #驼峰下划线转换
+      table-underline: true
+      # 逻辑删除配置
+      # 逻辑删除全局值（1表示已删除，这也是Mybatis Plus的默认配置）
+      logic-delete-value: 1
+      # 逻辑未删除全局值（0表示未删除，这也是Mybatis Plus的默认配置）
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    #mybatis-plus配置控制台打印完整带参数SQL语句
+    #log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#seata配置
+seata:
+  service:
+    vgroup-mapping:
+      seata-at-group: default
+    grouplist:
+      default: 127.0.0.1:8091
+  tx-service-group: seata-at-group
+  data-source-proxy-mode: AT
+  enable-auto-data-source-proxy: true
